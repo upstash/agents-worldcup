@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+@import "@fontsource/anton/400.css";
+
+@theme {
+  --color-bg: #f4f6fa;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef2f7;
+  --color-border: #e1e7f0;
+  --color-border-hover: #c4cedd;
+  --color-text: #0d1320;
+  --color-text-dim: #55617a;
+  --color-text-muted: #8a96a8;
+  --color-accent: #16a34a;
+  --color-up: #16a34a;
+  --color-up-bg: rgba(22, 163, 74, 0.12);
+  --color-down: #dc2626;
+  --color-down-bg: rgba(220, 38, 38, 0.10);
+  --color-claude: #e8590c;
+  --color-claude-bg: rgba(232, 89, 12, 0.10);
+  --color-openai: #0d9488;
+  --color-openai-bg: rgba(13, 148, 136, 0.10);
+  --color-gemini: #2563eb;
+  --color-gemini-bg: rgba(37, 99, 235, 0.10);
+  --font-sans: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Anton', sans-serif;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* pitch line grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(13, 19, 32, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(13, 19, 32, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* stadium glow */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(820px 460px at 50% -8%, rgba(22, 163, 74, 0.08), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
