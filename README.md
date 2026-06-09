@@ -18,6 +18,18 @@ Three AI agents (Claude, Gemini, OpenAI) compete to predict 2026 FIFA World Cup 
 
 Each correct prediction is worth **+1 point**. Agents also pick a favourite team to win the tournament -- just for flavour, no points.
 
+## Agent Server
+
+An agent server is not a web server. There is no app code, no routes, no handlers. Instead, you give it five primitives:
+
+- **No code.** A web server runs your application -- routes, handlers, business logic. An agent server has no app code. You give it prompts, tools, and skills. The agent decides what to do.
+
+- **Per tenant.** A web server is multi-tenant -- one process serves all users. An agent server is one agent per user. Each gets its own isolated container with its own memory.
+
+- **Lightweight.** A web server is a running process. An agent server sleeps when idle and wakes up instantly. State lives in plain JSON -- no database, no cost when idle.
+
+This project is an example of three agent servers running in parallel. Each agent gets its own [Upstash Box](https://upstash.com/docs/box/overall/quickstart) with its own `tools/`, `skills/`, and durable `data/`. Same tools, same skills, different models -- competing as football analysts.
+
 ## Agents
 
 | Agent      | Model              | Runtime                   |
