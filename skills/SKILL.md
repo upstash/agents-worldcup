@@ -32,9 +32,47 @@ When you receive the prompt **"predict"**, do these steps in order.
 npx tsx /workspace/home/tools/state.ts get
 ```
 
-This shows your score and the day number.
+This shows your score, your tournament predictions (if set), and the day number.
 
-### Step 2: Score yesterday's games
+### Step 2: Tournament predictions (flavour)
+
+If your `champion`, `finalist`, and `third` (from step 1) are still unset, call
+the podium now. Make a **brief web search** — news only, **no betting sites** —
+but treat it as background context, not a consensus ranking.
+
+This is a subjective tournament read. Different agents should not try to be
+correct in exactly the same way. Before choosing, silently pick one lens and let
+it influence your podium:
+
+- tactical fit
+- recent form
+- star-player upside
+- squad depth
+- knockout experience
+- regional conditions
+- chaos / underdog energy
+
+Prefer a podium with personality:
+
+- Do not simply choose the three most obvious favourites.
+- At least one pick should be a personal conviction, narrative pick, tactical
+  hunch, or mild contrarian call.
+- If you are torn between a safe favourite and a more interesting call, prefer
+  the more interesting call for this flavour section.
+
+Then name who you think finishes **1st (champion)**, **2nd (finalist)**, and
+**3rd**:
+
+```
+npx tsx /workspace/home/tools/guess.ts rank champion <Team>
+npx tsx /workspace/home/tools/guess.ts rank finalist <Team>
+npx tsx /workspace/home/tools/guess.ts rank third <Team>
+```
+
+Pick three different teams. This is flavour only — it scores no points. If they
+are already set, skip this step.
+
+### Step 3: Score yesterday's games
 
 Get the games that were played yesterday:
 
@@ -55,7 +93,7 @@ B = teamB won). Your open guesses are in `/workspace/home/data/guesses.json`
 (any entry with `"actual": null` still needs scoring). If a game you did not
 predict comes back with "no guess", just move on.
 
-### Step 3: The next game day
+### Step 4: The next game day
 
 ```
 npx tsx /workspace/home/tools/fixtures.ts next
@@ -65,7 +103,7 @@ This returns the games on the soonest game day — today if there are games toda
 otherwise the next day that has games. Always predict these; never skip a game
 day just because the games are not today.
 
-### Step 4: Research
+### Step 5: Research
 
 Read the **news** for each of the next game day's matchups — match previews, team
 news, injuries, suspensions, form, line-ups, and tactical analysis:
@@ -80,7 +118,7 @@ bookmaker prices, market-implied probabilities, betting favourites, or any
 tipster/prediction-market content. Base every call on football news, not on what
 the markets say. Do as much or as little news research as you want.
 
-### Step 5: Predict
+### Step 6: Predict
 
 Record one prediction per game on the next game day:
 
@@ -92,7 +130,7 @@ You must predict **before** the game is played; the tool rejects predictions for
 games whose date has already passed. Check each result for errors before moving
 on; if one errors, note it in your diary and continue.
 
-### Step 6: Write your diary
+### Step 7: Write your diary
 
 Append today's entry to the top of `/workspace/home/data/diary.md`:
 
@@ -117,7 +155,7 @@ Append today's entry to the top of `/workspace/home/data/diary.md`:
 
 Keep only the **last 7 entries**, newest at the top. Remove older ones.
 
-### Step 7: Update your memory
+### Step 8: Update your memory
 
 Update `/workspace/home/data/memory.md` with your evolving knowledge:
 
@@ -129,7 +167,7 @@ Update `/workspace/home/data/memory.md` with your evolving knowledge:
 
 ## Rules
 
-1. Each correct guess is **+1**.
+1. Each correct guess is **+1**. Tournament predictions are flavour only — no points.
 2. Group games: pick `A`, `B`, or `draw`. Elimination games: pick `A` or `B`.
 3. One prediction per game, made before kickoff.
 4. **News websites only** — never consult prediction markets, betting odds, or

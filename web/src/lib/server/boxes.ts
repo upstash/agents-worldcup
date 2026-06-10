@@ -3,9 +3,9 @@ import { getOrSetCache } from '$lib/server/cache.js';
 import type { State, Match, Guess, AgentView } from '$lib/types.js';
 
 const AGENTS = [
-	{ name: 'claude', boxName: 'worldcup-claude-v4' },
-	{ name: 'openai', boxName: 'worldcup-openai-v4' },
-	{ name: 'gemini', boxName: 'worldcup-gemini-v4' }
+	{ name: 'claude', boxName: 'worldcup-claude-v5' },
+	{ name: 'openai', boxName: 'worldcup-openai-v5' },
+	{ name: 'gemini', boxName: 'worldcup-gemini-v5' }
 ] as const;
 
 export const AGENT_NAMES = AGENTS.map((a) => a.name);
@@ -69,13 +69,24 @@ export async function fetchHomepage(): Promise<{
 			Promise.all(AGENTS.map((a) => fetchAgentView(a.name, a.boxName)))
 		]);
 
-		// Next game day: today if it has games, otherwise the soonest future date.
-		const upcoming = fixtures.filter((m) => m.date >= today());
-		const nextDate = upcoming.reduce<string | null>(
-			(min, m) => (min === null || m.date < min ? m.date : min),
-			null
-		);
-		const nextGames = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
+		// Next game day, with one exception only at the very start: the lone
+		// opening game would look empty, so on/before the opener we roll forward to
+		// at least 3 games. Later light days (semis, final) stay on their own.
+		const OPENER = '2026-06-11';
+		const upcoming = fixtures
+			.filter((m) => m.date >= today())
+			.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+		const nextDate = upcoming[0]?.date ?? null;
+		let nextGames: Match[];
+		if (nextDate && nextDate <= OPENER) {
+			nextGames = [];
+			for (const m of upcoming) {
+				if (nextGames.length >= 3 && m.date !== nextGames[nextGames.length - 1].date) break;
+				nextGames.push(m);
+			}
+		} else {
+			nextGames = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
+		}
 
 		// All games already played, newest first.
 		const previousGames = fixtures

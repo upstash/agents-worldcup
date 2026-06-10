@@ -1,5 +1,8 @@
 {
   "agent": "",
+  "champion": null,
+  "finalist": null,
+  "third": null,
   "score": 0,
   "correct": 0,
   "total_guessed": 0,

@@ -3,6 +3,12 @@
 	import { agentLabel, agentModel, teamFlag } from '$lib/index.js';
 	let { data } = $props();
 
+	const podium = [
+		{ medal: '🥇', key: 'champion' },
+		{ medal: '🥈', key: 'finalist' },
+		{ medal: '🥉', key: 'third' }
+	] as const;
+
 	function pickTeam(match: Match, pick: Pick | undefined | null): string | null {
 		if (!pick) return null;
 		if (pick === 'draw') return 'Draw';
@@ -57,6 +63,16 @@
 			<div class="mt-1 font-display text-7xl leading-none">{agent.state?.score ?? 0}</div>
 			<div class="mt-2 font-mono text-xs text-[var(--color-text-dim)]">
 				{agent.state?.correct ?? 0}<span class="text-[var(--color-text-muted)]">/{agent.state?.total_guessed ?? 0} correct predictions</span>
+			</div>
+			<div class="mt-3 space-y-1 border-t border-[var(--color-border)] pt-3 font-mono text-[11px]">
+				{#each podium as { medal, key } (key)}
+					{@const team = agent.state?.[key] ?? null}
+					<div class="flex items-center gap-1.5">
+						<span>{medal}</span>
+						{#if team && teamFlag(team)}<img src={teamFlag(team)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+						<span class="font-semibold text-[var(--color-text)]">{team ?? '—'}</span>
+					</div>
+				{/each}
 			</div>
 		</a>
 	{/each}

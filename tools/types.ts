@@ -48,6 +48,9 @@ export interface Guess {
 
 export interface State {
   agent: string;
+  champion: string | null; // flavour only — not scored
+  finalist: string | null; // flavour only — not scored
+  third: string | null; // flavour only — not scored
   score: number;
   correct: number;
   total_guessed: number;

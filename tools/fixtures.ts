@@ -26,13 +26,23 @@ if (process.argv[1]?.endsWith("fixtures.ts")) {
   } else if (cmd === "yesterday") {
     out = all.filter((m) => m.date === dateOffset(-1));
   } else if (cmd === "next") {
-    // The soonest match day: today if it has games, otherwise the next day that does.
-    const upcoming = all.filter((m) => m.date >= dateOffset(0));
-    const nextDate = upcoming.reduce<string | null>(
-      (min, m) => (min === null || m.date < min ? m.date : min),
-      null,
-    );
-    out = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
+    const upcoming = all
+      .filter((m) => m.date >= dateOffset(0))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    const nextDate = upcoming[0]?.date ?? null;
+    // Normally just the soonest game day. Exception only at the very start: the
+    // lone opening game would look empty, so on/before the opener we roll forward
+    // to at least 3 games. Later light days (e.g. semis, final) stay on their own.
+    const OPENER = "2026-06-11";
+    if (nextDate && nextDate <= OPENER) {
+      out = [];
+      for (const m of upcoming) {
+        if (out.length >= 3 && m.date !== out[out.length - 1].date) break;
+        out.push(m);
+      }
+    } else {
+      out = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
+    }
   } else {
     console.log(JSON.stringify({ error: "usage: fixtures.ts <next|today|yesterday|all>" }));
     process.exit(1);

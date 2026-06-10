@@ -21,6 +21,9 @@ export interface Guess {
 
 export interface State {
 	agent: string;
+	champion: string | null;
+	finalist: string | null;
+	third: string | null;
 	score: number;
 	correct: number;
 	total_guessed: number;

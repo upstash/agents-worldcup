@@ -38,6 +38,28 @@ function today(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+// ── tournament rank (champion / finalist / third — flavour, NOT scored) ──
+
+function setRank(position: string, team: string) {
+  if (position !== "champion" && position !== "finalist" && position !== "third") {
+    return { success: false, error: "position must be champion, finalist, or third" };
+  }
+  const teams = new Set(readFixtures().flatMap((m) => [m.teamA, m.teamB]));
+  if (!teams.has(team)) {
+    return { success: false, error: `unknown team: ${team}` };
+  }
+
+  const state = readState();
+  if (state[position]) {
+    return { success: false, error: `${position} already set to ${state[position]}` };
+  }
+
+  state[position] = team;
+  state.last_action = { summary: `${position}: ${team}`, timestamp: new Date().toISOString() };
+  writeState(state);
+  return { success: true, position, team };
+}
+
 // ── predict ──
 
 function predict(id: string, pick: string, reason?: string) {
@@ -99,7 +121,13 @@ const args = process.argv.slice(2);
 const cmd = args[0];
 let res: { success: boolean; error?: string };
 
-if (cmd === "predict") {
+if (cmd === "rank") {
+  const position = args[1];
+  const team = args.slice(2).join(" ");
+  res = position && team
+    ? setRank(position, team)
+    : { success: false, error: "usage: guess.ts rank <champion|finalist|third> <team>" };
+} else if (cmd === "predict") {
   const [, id, pick, ...reason] = args;
   res = id && pick
     ? predict(id, pick, reason.join(" ") || undefined)
@@ -110,7 +138,7 @@ if (cmd === "predict") {
     ? result(id, actual)
     : { success: false, error: "usage: guess.ts result <matchId> <A|B|draw>" };
 } else {
-  res = { success: false, error: "usage: guess.ts <predict|result> ..." };
+  res = { success: false, error: "usage: guess.ts <rank|predict|result> ..." };
 }
 
 console.log(JSON.stringify(res, null, 2));
