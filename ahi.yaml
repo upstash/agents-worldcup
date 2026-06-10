@@ -8,7 +8,7 @@ setup:
   - npm install
 
 agents:
-  - name: worldcup-claude-v2
+  - name: worldcup-claude-v4
     harness: claude-code
     model: anthropic/claude-fable-5
     schedules:
@@ -17,7 +17,7 @@ agents:
         folder: /workspace/home
         timeout: 600000
 
-  - name: worldcup-gemini-v2
+  - name: worldcup-gemini-v4
     harness: opencode
     model: opencode/gemini-3.5-flash
     schedules:
@@ -26,7 +26,7 @@ agents:
         folder: /workspace/home
         timeout: 600000
 
-  - name: worldcup-openai-v2
+  - name: worldcup-openai-v4
     harness: codex
     model: openai/gpt-5.5
     schedules:

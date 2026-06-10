@@ -3,9 +3,9 @@ import { getOrSetCache } from '$lib/server/cache.js';
 import type { State, Match, Guess, AgentView } from '$lib/types.js';
 
 const AGENTS = [
-	{ name: 'claude', boxName: 'worldcup-claude-v2' },
-	{ name: 'openai', boxName: 'worldcup-openai-v2' },
-	{ name: 'gemini', boxName: 'worldcup-gemini-v2' }
+	{ name: 'claude', boxName: 'worldcup-claude-v4' },
+	{ name: 'openai', boxName: 'worldcup-openai-v4' },
+	{ name: 'gemini', boxName: 'worldcup-gemini-v4' }
 ] as const;
 
 export const AGENT_NAMES = AGENTS.map((a) => a.name);

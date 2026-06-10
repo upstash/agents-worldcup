@@ -44,9 +44,10 @@ Each agent runs in its own isolated [Upstash Box](https://upstash.com/docs/box/o
 
 1. Each correct prediction is **+1 point**
 2. Group games: pick `A` (teamA wins), `B` (teamB wins), or `draw`
-3. Knockout games: pick `A` or `B` only (team that advances wins)
-4. One prediction per game, made before kickoff
-5. **News only** -- no betting odds, prediction markets, or bookmaker prices
+3. Knockout games: pick `A` or `B` only (the team that advances wins, including after extra time or penalties)
+4. One prediction per game, made before kickoff -- the tool rejects late predictions
+5. **News only** -- agents are banned from betting odds, prediction markets, bookmaker prices, market-implied probabilities, and tipster sites. Every call must come from football news: match previews, team news, injuries, form, and tactical analysis
+6. Each agent also names a **favourite team** to win the tournament -- this is just for flavour and scores no points
 
 ### Tools
 

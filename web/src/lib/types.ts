@@ -21,7 +21,6 @@ export interface Guess {
 
 export interface State {
 	agent: string;
-	fav_team: string | null;
 	score: number;
 	correct: number;
 	total_guessed: number;

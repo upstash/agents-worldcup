@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { Match, Pick } from '$lib/types.js';
-	import { agentLabel } from '$lib/index.js';
+	import { agentLabel, agentModel, teamFlag } from '$lib/index.js';
 	let { data } = $props();
 
 	let tab = $state<'guesses' | 'diary' | 'memory'>('guesses');
 
 	const matchById = $derived(new Map<string, Match>(data.fixtures.map((m) => [m.id, m])));
 
-	function pickLabel(match: Match | undefined, pick: Pick | undefined | null): string {
-		if (!match || !pick) return '—';
+	function pickTeam(match: Match | undefined, pick: Pick | undefined | null): string | null {
+		if (!match || !pick) return null;
 		if (pick === 'draw') return 'Draw';
 		return pick === 'A' ? match.teamA : match.teamB;
 	}
@@ -32,10 +32,10 @@
 	<h1 class="font-display text-6xl uppercase tracking-wide" style="color: var(--color-{data.name})">
 		{agentLabel(data.name)}
 	</h1>
+	<div class="mt-1 font-mono text-xs text-[var(--color-text-muted)]">{agentModel(data.name)}</div>
 	<div class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-xs text-[var(--color-text-dim)]">
 		<span><span class="font-bold text-[var(--color-text)]">{data.state?.score ?? 0}</span> PTS</span>
 		<span>{data.state?.correct ?? 0} correct / {data.state?.total_guessed ?? 0} guessed</span>
-		<span class="uppercase tracking-wider text-[var(--color-text-muted)]">Fav Team <span class="ml-1 font-semibold normal-case tracking-normal text-[var(--color-text)]">{data.state?.fav_team ?? '—'}</span></span>
 	</div>
 </header>
 
@@ -72,15 +72,35 @@
 				</thead>
 				<tbody>
 					{#each history as { id, guess, match } (id)}
+						{@const pickName = pickTeam(match, guess.pick)}
+						{@const resultName = pickTeam(match, guess.actual)}
 						<tr class="border-b border-[var(--color-border)] last:border-0">
 							<td class="px-4 py-3 font-mono text-[11px] text-[var(--color-text-muted)]">{match!.date}</td>
-							<td class="px-4 py-3">{match!.teamA} <span class="text-[var(--color-text-muted)]">v</span> {match!.teamB}</td>
 							<td class="px-4 py-3">
-								<span class="inline-block rounded-md px-2 py-1 text-xs font-bold" style="background: var(--color-{data.name}-bg); color: var(--color-{data.name})">
-									{pickLabel(match, guess.pick)}
+									<span class="inline-flex items-center gap-1.5">
+										{#if teamFlag(match!.teamA)}<img src={teamFlag(match!.teamA)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+										{match!.teamA}
+										<span class="text-[var(--color-text-muted)]">v</span>
+										{#if teamFlag(match!.teamB)}<img src={teamFlag(match!.teamB)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+										{match!.teamB}
+									</span>
+								</td>
+							<td class="px-4 py-3">
+								<span class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-bold" style="background: var(--color-{data.name}-bg); color: var(--color-{data.name})">
+									{#if pickName && pickName !== 'Draw' && teamFlag(pickName)}<img src={teamFlag(pickName)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+									{pickName ?? '—'}
 								</span>
 							</td>
-							<td class="px-4 py-3">{guess.actual ? pickLabel(match, guess.actual) : '—'}</td>
+							<td class="px-4 py-3">
+								{#if resultName}
+									<span class="inline-flex items-center gap-1.5 font-semibold">
+										{#if resultName !== 'Draw' && teamFlag(resultName)}<img src={teamFlag(resultName)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+										{resultName}
+									</span>
+								{:else}
+									<span class="text-[var(--color-text-muted)]">—</span>
+								{/if}
+							</td>
 							<td class="px-4 py-3 font-bold">
 								{#if guess.correct === true}
 									<span style="color: var(--color-up)">✓</span>

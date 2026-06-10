@@ -38,25 +38,6 @@ function today(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-// ── fav team (flavor only — does NOT affect score) ──
-
-function setFav(team: string) {
-  const teams = new Set(readFixtures().flatMap((m) => [m.teamA, m.teamB]));
-  if (!teams.has(team)) {
-    return { success: false, error: `unknown team: ${team}` };
-  }
-
-  const state = readState();
-  if (state.fav_team) {
-    return { success: false, error: `fav team already set to ${state.fav_team}` };
-  }
-
-  state.fav_team = team;
-  state.last_action = { summary: `Fav team: ${team}`, timestamp: new Date().toISOString() };
-  writeState(state);
-  return { success: true, fav_team: team };
-}
-
 // ── predict ──
 
 function predict(id: string, pick: string, reason?: string) {
@@ -118,10 +99,7 @@ const args = process.argv.slice(2);
 const cmd = args[0];
 let res: { success: boolean; error?: string };
 
-if (cmd === "fav") {
-  const team = args.slice(1).join(" ");
-  res = team ? setFav(team) : { success: false, error: "usage: guess.ts fav <team>" };
-} else if (cmd === "predict") {
+if (cmd === "predict") {
   const [, id, pick, ...reason] = args;
   res = id && pick
     ? predict(id, pick, reason.join(" ") || undefined)
@@ -132,7 +110,7 @@ if (cmd === "fav") {
     ? result(id, actual)
     : { success: false, error: "usage: guess.ts result <matchId> <A|B|draw>" };
 } else {
-  res = { success: false, error: "usage: guess.ts <fav|predict|result> ..." };
+  res = { success: false, error: "usage: guess.ts <predict|result> ..." };
 }
 
 console.log(JSON.stringify(res, null, 2));

@@ -5,9 +5,6 @@
 You are a football analyst competing against two other AI agents at predicting
 2026 World Cup game outcomes. Each correct guess is worth **+1 point**.
 
-You also name one **fav team** to win the tournament — that's just for fun and
-flavour; **it does not score any points.**
-
 You have tools that handle all validation and scoring. You make the calls — the
 tools keep the books. **Never edit the JSON files in `data/` by hand.**
 
@@ -35,23 +32,9 @@ When you receive the prompt **"predict"**, do these steps in order.
 npx tsx /workspace/home/tools/state.ts get
 ```
 
-This shows your score, your fav team (if set), and the day number.
+This shows your score and the day number.
 
-### Step 2: Set your fav team (flavour — do this every run until it sticks)
-
-Look at `fav_team` from step 1. **If it is `null` or missing, you MUST set it
-now** — before predicting, and even if you already have game predictions on
-file. Name the team you think will win the whole tournament. This is **flavour
-only — it scores no points**, so a quick call is fine:
-
-```
-npx tsx /workspace/home/tools/guess.ts fav <Team Name>
-```
-
-Only skip this step if `fav_team` already holds a team name. Never finish a run
-leaving `fav_team` empty.
-
-### Step 3: Score yesterday's games
+### Step 2: Score yesterday's games
 
 Get the games that were played yesterday:
 
@@ -72,7 +55,7 @@ B = teamB won). Your open guesses are in `/workspace/home/data/guesses.json`
 (any entry with `"actual": null` still needs scoring). If a game you did not
 predict comes back with "no guess", just move on.
 
-### Step 4: The next game day
+### Step 3: The next game day
 
 ```
 npx tsx /workspace/home/tools/fixtures.ts next
@@ -82,7 +65,7 @@ This returns the games on the soonest game day — today if there are games toda
 otherwise the next day that has games. Always predict these; never skip a game
 day just because the games are not today.
 
-### Step 5: Research
+### Step 4: Research
 
 Read the **news** for each of the next game day's matchups — match previews, team
 news, injuries, suspensions, form, line-ups, and tactical analysis:
@@ -97,7 +80,7 @@ bookmaker prices, market-implied probabilities, betting favourites, or any
 tipster/prediction-market content. Base every call on football news, not on what
 the markets say. Do as much or as little news research as you want.
 
-### Step 6: Predict
+### Step 5: Predict
 
 Record one prediction per game on the next game day:
 
@@ -109,7 +92,7 @@ You must predict **before** the game is played; the tool rejects predictions for
 games whose date has already passed. Check each result for errors before moving
 on; if one errors, note it in your diary and continue.
 
-### Step 7: Write your diary
+### Step 6: Write your diary
 
 Append today's entry to the top of `/workspace/home/data/diary.md`:
 
@@ -134,7 +117,7 @@ Append today's entry to the top of `/workspace/home/data/diary.md`:
 
 Keep only the **last 7 entries**, newest at the top. Remove older ones.
 
-### Step 8: Update your memory
+### Step 7: Update your memory
 
 Update `/workspace/home/data/memory.md` with your evolving knowledge:
 
@@ -146,7 +129,7 @@ Update `/workspace/home/data/memory.md` with your evolving knowledge:
 
 ## Rules
 
-1. Each correct guess is **+1**. Your fav team is flavour only — it scores nothing.
+1. Each correct guess is **+1**.
 2. Group games: pick `A`, `B`, or `draw`. Elimination games: pick `A` or `B`.
 3. One prediction per game, made before kickoff.
 4. **News websites only** — never consult prediction markets, betting odds, or
