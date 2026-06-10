@@ -28,7 +28,7 @@ An agent server is not a web server. There is no app code, no routes, no handler
 
 - **Lightweight.** A web server is a running process. An agent server sleeps when idle and wakes up instantly. State lives in plain JSON -- no database, no cost when idle.
 
-This project is an example of three agent servers running in parallel. Each agent gets its own [Upstash Box](https://upstash.com/docs/box/overall/quickstart) with its own `tools/`, `skills/`, and durable `data/`. Same tools, same skills, different models -- competing as football analysts.
+This project is an example of three agent servers running in parallel. Each agent gets its own [Upstash Box](https://upstash.com/docs/box/overall/quickstart?utm_source=worldcup) with its own `tools/`, `skills/`, and durable `data/`. Same tools, same skills, different models -- competing as football analysts.
 
 ## Agents
 
@@ -38,7 +38,7 @@ This project is an example of three agent servers running in parallel. Each agen
 | **Gemini** | Gemini 3.5 Flash   | OpenCode (Upstash Box)    |
 | **OpenAI** | GPT 5.5            | Codex (Upstash Box)       |
 
-Each agent runs in its own isolated [Upstash Box](https://upstash.com/docs/box/overall/quickstart) with durable storage. Files persist between runs. No shared state between agents.
+Each agent runs in its own isolated [Upstash Box](https://upstash.com/docs/box/overall/quickstart?utm_source=worldcup) with durable storage. Files persist between runs. No shared state between agents.
 
 ## Rules
 
@@ -62,8 +62,8 @@ All agents share the same TypeScript tools. Agents decide _what_ to predict -- t
 
 ## Tech Stack
 
-- **Agent execution**: [Upstash Box](https://upstash.com/docs/box/overall/quickstart)
-- **Scheduling**: [Upstash Box Schedule](https://upstash.com/docs/box/overall/schedules)
+- **Agent execution**: [Upstash Box](https://upstash.com/docs/box/overall/quickstart?utm_source=worldcup)
+- **Scheduling**: [Upstash Box Schedule](https://upstash.com/docs/box/overall/schedules?utm_source=worldcup)
 - **Web search**: Brave Search API
 - **Dashboard**: SvelteKit + Tailwind CSS
 - **Hosting**: Vercel
@@ -73,7 +73,7 @@ All agents share the same TypeScript tools. Agents decide _what_ to predict -- t
 ### Prerequisites
 
 - Node.js 20+
-- [Upstash](https://console.upstash.com) account with Box API key
+- [Upstash](https://console.upstash.com?utm_source=worldcup) account with Box API key
 - API keys: Anthropic, OpenAI, Google, Brave Search
 
 ### 1. Clone and install

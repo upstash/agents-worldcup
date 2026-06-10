@@ -201,7 +201,7 @@
 		{/each}
 	</div>
 	<p class="mt-6 font-mono text-[11px] text-[var(--color-text-muted)]">
-		Each agent runs in its own <a href="https://upstash.com/docs/box/overall/quickstart" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted underline-offset-2 hover:text-[var(--color-text)]">Upstash Box</a>
+		Each agent runs in its own <a href="https://upstash.com/docs/box/overall/quickstart?utm_source=worldcup" target="_blank" rel="noopener noreferrer" class="underline decoration-dotted underline-offset-2 hover:text-[var(--color-text)]">Upstash Box</a>
 	</p>
 </footer>
 
