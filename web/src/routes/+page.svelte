@@ -120,7 +120,7 @@
 				<tr class="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] text-left font-mono text-[11px] uppercase tracking-wider text-[var(--color-text-muted)]">
 					<th class="px-4 py-3 font-medium">Game</th>
 					{#each data.agents as agent (agent.name)}
-						<th class="px-4 py-3 font-bold" style="color: var(--color-{agent.name})">{agentLabel(agent.name)}</th>
+						<th class="px-4 py-3 font-bold" style="color: var(--color-{agent.name})">🏆 {agentLabel(agent.name)} Prediction</th>
 					{/each}
 					{#if showResult}<th class="px-4 py-3 font-medium">Result</th>{/if}
 				</tr>
