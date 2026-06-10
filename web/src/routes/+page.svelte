@@ -60,27 +60,11 @@
 		{@const correct = agent.state?.correct ?? 0}
 		{@const total = agent.state?.total_guessed ?? 0}
 		{@const pct = total > 0 ? Math.round((correct / total) * 100) : 0}
-		{@const locked = Object.values(agent.guesses).filter((g) => g.pick).length}
 		<a
 			href="/agent/{agent.name}"
 			class="relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-border-hover)]"
 		>
 			<span class="absolute inset-x-0 top-0 h-1 z-20" style="background: var(--color-{agent.name})"></span>
-			{#if total === 0}
-				<div
-					class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-2xl px-5 text-center backdrop-blur-[2px]"
-					style="background: color-mix(in srgb, var(--color-surface) 72%, transparent)"
-				>
-					<span class="text-2xl">🏆</span>
-					<span class="flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase" style="color: var(--color-{agent.name})">
-						<span class="inline-block h-1.5 w-1.5 animate-pulse rounded-full" style="background: var(--color-{agent.name})"></span>
-						Awaiting first result
-					</span>
-					<span class="font-mono text-[11px] text-[var(--color-text-muted)]">
-						{locked > 0 ? `${locked} pick${locked === 1 ? '' : 's'} locked in. Scores start once games conclude.` : 'No picks yet. Scores start once games conclude.'}
-					</span>
-				</div>
-			{/if}
 			<div class="flex items-start justify-between">
 				<div class="flex items-center gap-2.5">
 					<img src={agentLogo(agent.name)} alt="" class="h-4 w-4 shrink-0" />
@@ -91,7 +75,7 @@
 				<span class="font-mono text-xs uppercase text-[var(--color-text-muted)]">{agent.state?.score ?? 0} pts</span>
 			</div>
 			<div class="mt-5 flex items-baseline gap-2">
-				<span class="font-display text-7xl leading-none">{pct}<span class="text-4xl">%</span></span>
+				<span class="font-display text-7xl leading-none">{total === 0 ? '–' : pct}<span class="text-4xl">%</span></span>
 				<span class="font-mono text-sm uppercase tracking-wider text-[var(--color-text-dim)]">right</span>
 			</div>
 			<div class="mt-3 border-t border-[var(--color-border)] pt-3 font-mono text-[11px]">
