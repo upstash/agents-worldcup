@@ -7,7 +7,13 @@ export function agentLabel(name: string): string {
 
 // The model each agent runs (mirrors ahi.yaml; not stored in box data).
 export function agentModel(name: string): string {
-	return { claude: 'Fable 5', openai: 'GPT-5.5', gemini: 'Gemini 3.5 Flash' }[name] ?? '';
+	return { claude: 'Fable 5', openai: 'GPT-5.5', gemini: '3.5 Flash' }[name] ?? '';
+}
+
+// Brand logo SVG for an agent (from svgl.app), e.g. "/models/claude.svg".
+export function agentLogo(name: string): string {
+	const file = { claude: 'claude', openai: 'openai', gemini: 'gemini' }[name];
+	return file ? `/models/${file}.svg` : '';
 }
 
 // Map team name → flag SVG filename (ISO 3166-1 alpha-2, with subdivisions for UK nations).
