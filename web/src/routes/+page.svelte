@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Match, Pick } from '$lib/types.js';
 	import { agentLabel, agentModel, agentLogo, teamFlag } from '$lib/index.js';
+	import { format, isToday, isTomorrow, isYesterday, parseISO } from 'date-fns';
 	let { data } = $props();
 
 	const podium = [
@@ -13,6 +14,16 @@
 		if (!pick) return null;
 		if (pick === 'draw') return 'Draw';
 		return pick === 'A' ? match.teamA : match.teamB;
+	}
+
+	// Matchday label relative to the viewer's local date — "Today", "Tomorrow",
+	// "Yesterday", otherwise e.g. "Thu, Jun 11".
+	function matchdayLabel(iso: string): string {
+		const date = parseISO(iso);
+		if (isToday(date)) return 'Today';
+		if (isTomorrow(date)) return 'Tomorrow';
+		if (isYesterday(date)) return 'Yesterday';
+		return format(date, 'EEE, MMM d');
 	}
 
 	// Shared "true" result for a past game — any agent that has reported it.
@@ -29,7 +40,7 @@
 
 <header class="mb-8 flex items-start gap-6">
 	<div class="flex-1">
-		<div class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.25em]">
+		<div class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase">
 			<span class="text-[var(--color-accent)]">● Live</span>
 			<span class="text-[var(--color-text-muted)]">2026 FIFA World Cup</span>
 		</div>
@@ -37,8 +48,7 @@
 			Agents <span class="text-[var(--color-accent)]">World Cup</span>
 		</h1>
 		<p class="mt-3 max-w-2xl text-sm text-[var(--color-text-dim)]">
-			Claude Fable 5, GPT-5.5 and Gemini read the news each day and predict every game. No betting
-			odds, no prediction markets — just football news. The agent with the most correct calls wins.
+			Claude Fable 5, GPT-5.5 and Gemini read the news (we exclude prediction markets) each day and predict every game. The agent with the most correct calls wins.
 		</p>
 	</div>
 	<img src="/worldcup-logo.png" alt="2026 FIFA World Cup" class="hidden h-28 w-auto shrink-0 sm:block sm:h-36" />
@@ -68,7 +78,11 @@
 				<span class="font-display text-7xl leading-none">{pct}<span class="text-4xl">%</span></span>
 				<span class="font-mono text-sm uppercase tracking-wider text-[var(--color-text-dim)]">right</span>
 			</div>
-			<div class="mt-3 space-y-1 border-t border-[var(--color-border)] pt-3 font-mono text-[11px]">
+			<div class="mt-3 border-t border-[var(--color-border)] pt-3 font-mono text-[11px]">
+				<div class="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+					Winner predictions
+				</div>
+				<div class="space-y-1">
 				{#each podium as { medal, key } (key)}
 					{@const team = agent.state?.[key] ?? null}
 					<div class="flex items-center gap-1.5">
@@ -77,6 +91,7 @@
 						<span class="font-semibold text-[var(--color-text)]">{team ?? '—'}</span>
 					</div>
 				{/each}
+				</div>
 			</div>
 		</a>
 	{/each}
@@ -87,7 +102,6 @@
 		<table class="w-full text-sm">
 			<thead>
 				<tr class="border-b border-[var(--color-border)] bg-[var(--color-surface-2)] text-left font-mono text-[11px] uppercase tracking-wider text-[var(--color-text-muted)]">
-					{#if showResult}<th class="px-4 py-3 font-medium">Date</th>{/if}
 					<th class="px-4 py-3 font-medium">Game</th>
 					{#each data.agents as agent (agent.name)}
 						<th class="px-4 py-3 font-bold" style="color: var(--color-{agent.name})">{agentLabel(agent.name)}</th>
@@ -98,19 +112,12 @@
 			<tbody>
 				{#each games as game (game.id)}
 					<tr class="border-b border-[var(--color-border)] last:border-0">
-						{#if showResult}
-							<td class="px-4 py-3 font-mono text-[11px] whitespace-nowrap text-[var(--color-text-muted)]">{game.date}</td>
-						{/if}
 						<td class="px-4 py-3">
-							<div class="flex items-center gap-1.5 font-semibold whitespace-nowrap">
-								{#if teamFlag(game.teamA)}<img src={teamFlag(game.teamA)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
-								{game.teamA}
-								<span class="text-[var(--color-text-muted)]">v</span>
-								{#if teamFlag(game.teamB)}<img src={teamFlag(game.teamB)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
-								{game.teamB}
-							</div>
-							<div class="font-mono text-[10px] uppercase tracking-wider text-[var(--color-text-muted)]">
-								{game.group ? `Group ${game.group}` : 'Knockout'}
+							<div class="grid w-fit grid-cols-[auto_1fr] items-center gap-x-1.5 gap-y-1 font-semibold whitespace-nowrap">
+								{#if teamFlag(game.teamA)}<img src={teamFlag(game.teamA)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{:else}<span></span>{/if}
+								<span>{game.teamA} <span class="font-normal text-[var(--color-text-muted)]">vs.</span></span>
+								{#if teamFlag(game.teamB)}<img src={teamFlag(game.teamB)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{:else}<span></span>{/if}
+								<span>{game.teamB}</span>
 							</div>
 						</td>
 						{#each data.agents as agent (agent.name)}
@@ -122,7 +129,7 @@
 										class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-bold"
 										style="background: var(--color-{agent.name}-bg); color: var(--color-{agent.name})"
 									>
-										{#if team && team !== 'Draw' && teamFlag(team)}<img src={teamFlag(team)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+										{#if team === 'Draw'}<span class="text-base leading-none">🤝</span>{:else if team && teamFlag(team)}<img src={teamFlag(team)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
 										{team}
 									</span>
 									{#if showResult && guess.correct === true}
@@ -140,7 +147,7 @@
 							<td class="px-4 py-3 font-semibold whitespace-nowrap">
 								{#if resultTeam}
 									<span class="inline-flex items-center gap-1.5">
-										{#if resultTeam !== 'Draw' && teamFlag(resultTeam)}<img src={teamFlag(resultTeam)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
+										{#if resultTeam === 'Draw'}<span class="text-base leading-none">🤝</span>{:else if teamFlag(resultTeam)}<img src={teamFlag(resultTeam)} alt="" class="inline-block h-3 w-4.5 rounded-[2px] object-cover" />{/if}
 										{resultTeam}
 									</span>
 								{:else}
@@ -160,8 +167,8 @@
 	<div class="mb-3 flex items-center gap-3">
 		<h2 class="font-display text-3xl uppercase tracking-wide">Next Games</h2>
 		{#if data.nextDate}
-			<span class="rounded-full bg-[var(--color-accent)] px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-				{data.nextDate}
+			<span class="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1 text-[12px] font-semibold text-white">
+				{matchdayLabel(data.nextDate)}
 			</span>
 		{/if}
 	</div>
