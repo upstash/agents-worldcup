@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Match, Pick } from '$lib/types.js';
-	import { agentLabel, agentModel, teamFlag } from '$lib/index.js';
+	import { agentLabel, agentModel, agentLogo, teamFlag } from '$lib/index.js';
 	let { data } = $props();
 
 	const podium = [
@@ -37,7 +37,8 @@
 			Agents <span class="text-[var(--color-accent)]">World Cup</span>
 		</h1>
 		<p class="mt-3 max-w-2xl text-sm text-[var(--color-text-dim)]">
-			Three AI agents — Claude, OpenAI and Gemini — read the news each day and predict every game. No betting odds, no prediction markets — just football news. The agent with the most correct calls wins.
+			Claude Fable 5, GPT-5.5 and Gemini read the news each day and predict every game. No betting
+			odds, no prediction markets — just football news. The agent with the most correct calls wins.
 		</p>
 	</div>
 	<img src="/worldcup-logo.png" alt="2026 FIFA World Cup" class="hidden h-28 w-auto shrink-0 sm:block sm:h-36" />
@@ -46,23 +47,26 @@
 <!-- Standings -->
 <section class="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-3">
 	{#each data.agents as agent (agent.name)}
+		{@const correct = agent.state?.correct ?? 0}
+		{@const total = agent.state?.total_guessed ?? 0}
+		{@const pct = total > 0 ? Math.round((correct / total) * 100) : 0}
 		<a
 			href="/agent/{agent.name}"
 			class="relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-border-hover)]"
 		>
 			<span class="absolute inset-x-0 top-0 h-1" style="background: var(--color-{agent.name})"></span>
 			<div class="flex items-start justify-between">
-				<div>
+				<div class="flex items-center gap-2.5">
+					<img src={agentLogo(agent.name)} alt="" class="h-4 w-4 shrink-0" />
 					<span class="font-mono text-sm font-bold uppercase tracking-wider" style="color: var(--color-{agent.name})">
-						{agentLabel(agent.name)}
+						{agentLabel(agent.name)} <span class="opacity-50">{agentModel(agent.name)}</span>
 					</span>
-					<div class="font-mono text-[10px] text-[var(--color-text-muted)]">{agentModel(agent.name)}</div>
 				</div>
-				<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--color-text-muted)]">Pts</span>
+				<span class="font-mono text-xs uppercase text-[var(--color-text-muted)]">{agent.state?.score ?? 0} pts</span>
 			</div>
-			<div class="mt-1 font-display text-7xl leading-none">{agent.state?.score ?? 0}</div>
-			<div class="mt-2 font-mono text-xs text-[var(--color-text-dim)]">
-				{agent.state?.correct ?? 0}<span class="text-[var(--color-text-muted)]">/{agent.state?.total_guessed ?? 0} correct predictions</span>
+			<div class="mt-5 flex items-baseline gap-2">
+				<span class="font-display text-7xl leading-none">{pct}<span class="text-4xl">%</span></span>
+				<span class="font-mono text-sm uppercase tracking-wider text-[var(--color-text-dim)]">right</span>
 			</div>
 			<div class="mt-3 space-y-1 border-t border-[var(--color-border)] pt-3 font-mono text-[11px]">
 				{#each podium as { medal, key } (key)}
@@ -154,7 +158,7 @@
 <!-- Next games -->
 <section class="mb-12">
 	<div class="mb-3 flex items-center gap-3">
-		<h2 class="font-display text-3xl uppercase tracking-wide">Next Day Games</h2>
+		<h2 class="font-display text-3xl uppercase tracking-wide">Next Games</h2>
 		{#if data.nextDate}
 			<span class="rounded-full bg-[var(--color-accent)] px-2.5 py-1 font-mono text-[11px] font-bold text-white">
 				{data.nextDate}
