@@ -69,12 +69,24 @@ export async function fetchHomepage(): Promise<{
 			Promise.all(AGENTS.map((a) => fetchAgentView(a.name, a.boxName)))
 		]);
 
+		// A game is "played" once it has a confirmed result (any agent scored it)
+		// or its date is in the past. Games kick off throughout the day, so a match
+		// dated today may already be finished — bucket by result, not date alone,
+		// otherwise a finished game lingers in "Next" until midnight UTC.
+		const scoredIds = new Set<string>();
+		for (const agent of agents) {
+			for (const [id, guess] of Object.entries(agent.guesses)) {
+				if (guess?.actual != null) scoredIds.add(id);
+			}
+		}
+		const isPlayed = (m: Match): boolean => scoredIds.has(m.id) || m.date < today();
+
 		// Next game day, with one exception only at the very start: the lone
 		// opening game would look empty, so on/before the opener we roll forward to
 		// at least 3 games. Later light days (semis, final) stay on their own.
 		const OPENER = '2026-06-11';
 		const upcoming = fixtures
-			.filter((m) => m.date >= today())
+			.filter((m) => !isPlayed(m))
 			.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
 		const nextDate = upcoming[0]?.date ?? null;
 		let nextGames: Match[];
@@ -90,7 +102,7 @@ export async function fetchHomepage(): Promise<{
 
 		// All games already played, newest first.
 		const previousGames = fixtures
-			.filter((m) => m.date < today())
+			.filter(isPlayed)
 			.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
 		// Fixed display order: claude, openai, gemini (the AGENTS order).
