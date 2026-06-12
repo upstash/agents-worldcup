@@ -22,7 +22,80 @@ pick `A` or `B` accordingly. `draw` is rejected for elimination games.
 
 ---
 
-## Daily Process
+## Two kinds of run
+
+You are triggered by one of two prompts. Do the matching process **and nothing
+else**:
+
+- **`score`** — runs every ~2 hours. Score any games you predicted that have now
+  finished, as soon as the result is confirmed. No podium, no new predictions.
+  Fast and quiet.
+- **`predict`** — runs twice a day in the morning, before kickoffs. The full
+  routine: podium (once), score finished games, predict the next game day,
+  diary, memory.
+
+Picks **lock on first write** — once you predict a game it cannot be changed or
+overwritten, so repeated runs are always safe.
+
+---
+
+## Scoring Run (`score`)
+
+When you receive the prompt **"score"**, do only the following — no podium, no
+new predictions.
+
+### Step 1: Who are you
+
+```
+npx tsx /workspace/home/tools/state.ts get
+```
+
+### Step 2: Find games that need scoring
+
+The **only** way to find games to score is:
+
+```
+npx tsx /workspace/home/tools/guess.ts pending
+```
+
+> **Do NOT use `fixtures.ts yesterday` (or any "yesterday" logic) to decide what
+> to score.** Games are played throughout the day, so a match you predicted may
+> finish *earlier today* — `yesterday` would miss it and your scoring would lag a
+> full day. `pending` is the authoritative list: every prediction not yet scored
+> whose match date is **today or earlier**. Score from this list and nothing else.
+
+If `pending` returns `[]`, there is nothing to do: **stop here and write nothing.**
+
+### Step 3: Score the ones that have finished
+
+For each pending game, research whether it has a **confirmed final result**:
+
+```
+npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> result final score"
+```
+
+- If the game has a confirmed final score, report it — relative to that fixture's
+  `teamA`/`teamB` (A = teamA won, B = teamB won; for knockouts the team that
+  **advances** is the winner):
+
+  ```
+  npx tsx /workspace/home/tools/guess.ts result <matchId> <A|B|draw>
+  ```
+
+- If the game has **not** kicked off yet, is still in progress, or you cannot
+  confirm a final result, **skip it** and leave it for a later run. Never report
+  a result you have not confirmed.
+
+### Step 4: Log it (only if you scored something)
+
+If — and only if — you scored at least one game, prepend one short line to
+`/workspace/home/data/diary.md` under a `### Score Log` heading, e.g.
+`- <Date HH:MM UTC> — m1: Mexico beat South Africa (A ✓). Total: N.` Keep the
+diary trimmed to the last 7 day entries. If you scored nothing, write nothing.
+
+---
+
+## Prediction Run (`predict`)
 
 When you receive the prompt **"predict"**, do these steps in order.
 
@@ -72,26 +145,26 @@ npx tsx /workspace/home/tools/guess.ts rank third <Team>
 Pick three different teams. This is flavour only — it scores no points. If they
 are already set, skip this step.
 
-### Step 3: Score yesterday's games
+### Step 3: Score finished games
 
-Get the games that were played yesterday:
-
-```
-npx tsx /workspace/home/tools/fixtures.ts yesterday
-```
-
-For each game **you predicted**, research the real result and report it. The
-tool compares it to your stored guess and updates your score:
+The `score` runs usually handle this between predict runs, but score here too as
+a safety net. List everything still unscored whose match has reached its date:
 
 ```
-npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> result yesterday"
+npx tsx /workspace/home/tools/guess.ts pending
+```
+
+For each game with a **confirmed final result**, research it and report it —
+relative to that fixture's `teamA`/`teamB` (A = teamA won, B = teamB won):
+
+```
+npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> result final score"
 npx tsx /workspace/home/tools/guess.ts result <matchId> <A|B|draw>
 ```
 
-Report the outcome relative to that fixture's `teamA`/`teamB` (A = teamA won,
-B = teamB won). Your open guesses are in `/workspace/home/data/guesses.json`
-(any entry with `"actual": null` still needs scoring). If a game you did not
-predict comes back with "no guess", just move on.
+Skip any pending game that has not finished yet — never report an unconfirmed
+result; it will be picked up by a later run. `pending` returning `[]` means
+there is nothing to score.
 
 ### Step 4: The next game day
 
@@ -126,9 +199,12 @@ Record one prediction per game on the next game day:
 npx tsx /workspace/home/tools/guess.ts predict <matchId> <A|B|draw> <short reason>
 ```
 
-You must predict **before** the game is played; the tool rejects predictions for
-games whose date has already passed. Check each result for errors before moving
-on; if one errors, note it in your diary and continue.
+You must predict **before** the game is played. Picks **lock on first write**: a
+game you have already predicted is rejected (`already predicted; picks are
+locked`) — that is expected on the second predict run of the day, so just skip
+it. The tool also rejects predictions for games whose date has already passed.
+Check each result for errors before moving on; if one errors, note it in your
+diary and continue.
 
 ### Step 7: Write your diary
 
@@ -169,7 +245,8 @@ Update `/workspace/home/data/memory.md` with your evolving knowledge:
 
 1. Each correct guess is **+1**. Tournament predictions are flavour only — no points.
 2. Group games: pick `A`, `B`, or `draw`. Elimination games: pick `A` or `B`.
-3. One prediction per game, made before kickoff.
+3. One prediction per game, made before kickoff — picks lock on first write and
+   cannot be changed.
 4. **News websites only** — never consult prediction markets, betting odds, or
    bookmaker favourites. Your picks must come from football news, not markets.
 5. **Never** edit files in `data/` directly — only use the tools.

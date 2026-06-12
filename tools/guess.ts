@@ -72,13 +72,41 @@ function predict(id: string, pick: string, reason?: string) {
 
   const guesses = readGuesses();
   const existing = guesses[id];
-  if (existing?.actual != null) {
-    return { success: false, error: `match ${id} already scored` };
+  // Picks lock on first write: a game is predicted exactly once, before kickoff.
+  // This keeps repeated predict runs (and any post-kickoff run) from overwriting.
+  if (existing) {
+    return existing.actual != null
+      ? { success: false, error: `match ${id} already scored` }
+      : { success: false, error: `match ${id} already predicted (${existing.pick}); picks are locked` };
   }
 
   guesses[id] = { pick, reason, actual: null, correct: null };
   writeGuesses(guesses);
   return { success: true, matchId: id, pick, match: `${match.teamA} vs ${match.teamB}` };
+}
+
+// ── pending (unscored guesses whose match has been played — date <= today) ──
+
+function pending() {
+  const guesses = readGuesses();
+  const byId = new Map(readFixtures().map((m) => [m.id, m] as const));
+  const t = today();
+  const out: Array<{
+    matchId: string;
+    date: string;
+    stage: Match["stage"];
+    teamA: string;
+    teamB: string;
+    pick: Pick;
+  }> = [];
+  for (const [id, g] of Object.entries(guesses)) {
+    if (g.actual != null) continue; // already scored
+    const match = byId.get(id);
+    if (!match || match.date > t) continue; // not played yet
+    out.push({ matchId: id, date: match.date, stage: match.stage, teamA: match.teamA, teamB: match.teamB, pick: g.pick });
+  }
+  out.sort((a, b) => a.date.localeCompare(b.date) || a.matchId.localeCompare(b.matchId));
+  return out;
 }
 
 // ── result (self-reported, then scored) ──
@@ -119,6 +147,13 @@ function result(id: string, actual: string) {
 
 const args = process.argv.slice(2);
 const cmd = args[0];
+
+// Read-only listing of games that still need scoring — used by the `score` run.
+if (cmd === "pending") {
+  console.log(JSON.stringify(pending(), null, 2));
+  process.exit(0);
+}
+
 let res: { success: boolean; error?: string };
 
 if (cmd === "rank") {
@@ -138,7 +173,7 @@ if (cmd === "rank") {
     ? result(id, actual)
     : { success: false, error: "usage: guess.ts result <matchId> <A|B|draw>" };
 } else {
-  res = { success: false, error: "usage: guess.ts <rank|predict|result> ..." };
+  res = { success: false, error: "usage: guess.ts <rank|predict|result|pending> ..." };
 }
 
 console.log(JSON.stringify(res, null, 2));
