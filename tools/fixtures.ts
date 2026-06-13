@@ -43,8 +43,19 @@ if (process.argv[1]?.endsWith("fixtures.ts")) {
     } else {
       out = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
     }
+  } else if (cmd === "upcoming") {
+    // Games on the next N distinct game-day dates (default 2), today or later.
+    // Predicting a multi-day window — not just the soonest day — gives every game
+    // several predict runs before its date passes, so a single failed or missed
+    // run never silently drops a game.
+    const n = Math.max(1, Number.parseInt(process.argv[3] ?? "2", 10) || 2);
+    const upcoming = all
+      .filter((m) => m.date >= dateOffset(0))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    const dates = [...new Set(upcoming.map((m) => m.date))].slice(0, n);
+    out = upcoming.filter((m) => dates.includes(m.date));
   } else {
-    console.log(JSON.stringify({ error: "usage: fixtures.ts <next|today|yesterday|all>" }));
+    console.log(JSON.stringify({ error: "usage: fixtures.ts <next|upcoming [days]|today|yesterday|all>" }));
     process.exit(1);
   }
 

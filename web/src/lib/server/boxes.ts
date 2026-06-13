@@ -59,8 +59,7 @@ async function fetchAgentView(name: string, boxName: string): Promise<AgentView>
 
 export async function fetchHomepage(): Promise<{
 	agents: AgentView[];
-	nextGames: Match[];
-	nextDate: string | null;
+	nextDays: { date: string; games: Match[] }[];
 	previousGames: Match[];
 }> {
 	return getOrSetCache('homepage', CACHE_TTL_MS, async () => {
@@ -81,24 +80,18 @@ export async function fetchHomepage(): Promise<{
 		}
 		const isPlayed = (m: Match): boolean => scoredIds.has(m.id) || m.date < today();
 
-		// Next game day, with one exception only at the very start: the lone
-		// opening game would look empty, so on/before the opener we roll forward to
-		// at least 3 games. Later light days (semis, final) stay on their own.
-		const OPENER = '2026-06-11';
+		// Show the next two game days — mirrors the agents' two-day prediction
+		// window (tools/fixtures.ts `upcoming 2`), so picks already locked in for
+		// tomorrow are visible here instead of hidden until that day arrives.
+		const NEXT_DAYS = 2;
 		const upcoming = fixtures
 			.filter((m) => !isPlayed(m))
 			.sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
-		const nextDate = upcoming[0]?.date ?? null;
-		let nextGames: Match[];
-		if (nextDate && nextDate <= OPENER) {
-			nextGames = [];
-			for (const m of upcoming) {
-				if (nextGames.length >= 3 && m.date !== nextGames[nextGames.length - 1].date) break;
-				nextGames.push(m);
-			}
-		} else {
-			nextGames = nextDate ? upcoming.filter((m) => m.date === nextDate) : [];
-		}
+		const nextDates = [...new Set(upcoming.map((m) => m.date))].slice(0, NEXT_DAYS);
+		const nextDays = nextDates.map((date) => ({
+			date,
+			games: upcoming.filter((m) => m.date === date)
+		}));
 
 		// All games already played, newest first.
 		const previousGames = fixtures
@@ -106,7 +99,7 @@ export async function fetchHomepage(): Promise<{
 			.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
 		// Fixed display order: claude, openai, gemini (the AGENTS order).
-		return { agents, nextGames, nextDate, previousGames };
+		return { agents, nextDays, previousGames };
 	});
 }
 

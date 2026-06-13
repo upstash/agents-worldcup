@@ -162,23 +162,27 @@
 	</div>
 {/snippet}
 
-<!-- Next games -->
+<!-- Next games — next two game days, matching the agents' prediction window -->
 <section class="mb-12">
-	<div class="mb-3 flex items-center gap-3">
-		<h2 class="font-display text-3xl uppercase tracking-wide">Next Games</h2>
-		{#if data.nextDate}
-			<span class="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1 text-[12px] font-semibold text-white">
-				{matchdayLabel(data.nextDate)}
-			</span>
-		{/if}
-	</div>
+	<h2 class="mb-3 font-display text-3xl uppercase tracking-wide">Next Games</h2>
 
-	{#if data.nextGames.length === 0}
+	{#if data.nextDays.length === 0}
 		<p class="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-dim)]">
 			No upcoming games.
 		</p>
 	{:else}
-		{@render gamesTable(data.nextGames, false)}
+		<div class="space-y-6">
+			{#each data.nextDays as day (day.date)}
+				<div>
+					<div class="mb-2">
+						<span class="inline-flex items-center rounded-full bg-[var(--color-accent)] px-3 py-1 text-[12px] font-semibold text-white">
+							{matchdayLabel(day.date)}
+						</span>
+					</div>
+					{@render gamesTable(day.games, false)}
+				</div>
+			{/each}
+		</div>
 	{/if}
 </section>
 

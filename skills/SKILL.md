@@ -31,7 +31,7 @@ else**:
   finished, as soon as the result is confirmed. No podium, no new predictions.
   Fast and quiet.
 - **`predict`** — runs twice a day in the morning, before kickoffs. The full
-  routine: podium (once), score finished games, predict the next game day,
+  routine: podium (once), score finished games, predict the next two game days,
   diary, memory.
 
 Picks **lock on first write** — once you predict a game it cannot be changed or
@@ -68,23 +68,36 @@ If `pending` returns `[]`, there is nothing to do: **stop here and write nothing
 
 ### Step 3: Score the ones that have finished
 
-For each pending game, research whether it has a **confirmed final result**:
+`pending` lists games by **date**, so a same-day game on it may not have kicked
+off yet, or may be **in progress**. Scoring such a game would lock in a mid-game
+or non-final scoreline. `result` **locks on first write — whatever you report is
+permanent and can never be corrected.** So score a game **only after you have
+confirmed it is over.**
+
+For each pending game, research its status and result:
 
 ```
 npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> result final score"
 ```
 
-- If the game has a confirmed final score, report it — relative to that fixture's
-  `teamA`/`teamB` (A = teamA won, B = teamB won; for knockouts the team that
-  **advances** is the winner):
+**Only score when the result is explicitly FINAL** — a clear full-time marker
+from a reputable source: "Full time", "FT", "final score", "final result", or
+"match ended". For knockouts, final means *after* extra time and penalties — the
+team that **advances** is the winner. Report it relative to that fixture's
+`teamA`/`teamB` (A = teamA won, B = teamB won):
 
-  ```
-  npx tsx /workspace/home/tools/guess.ts result <matchId> <A|B|draw>
-  ```
+```
+npx tsx /workspace/home/tools/guess.ts result <matchId> <A|B|draw>
+```
 
-- If the game has **not** kicked off yet, is still in progress, or you cannot
-  confirm a final result, **skip it** and leave it for a later run. Never report
-  a result you have not confirmed.
+**Do NOT score — skip it and leave it for a later run — if you see any sign the
+game is not finished:** not kicked off yet, "LIVE", a running match clock or
+minute mark (e.g. `67'`), "HT" / half-time, "1st/2nd half", "in progress", only a
+pre-match preview or line-ups, a knockout still level and heading to ET /
+penalties, or just a scoreline with no full-time confirmation. **When in doubt,
+skip.** This run repeats every ~2 hours, so skipping costs at most a short delay —
+a premature score is locked forever. Never report a result you have not confirmed
+as final.
 
 ### Step 4: Log it (only if you scored something)
 
@@ -154,31 +167,45 @@ a safety net. List everything still unscored whose match has reached its date:
 npx tsx /workspace/home/tools/guess.ts pending
 ```
 
-For each game with a **confirmed final result**, research it and report it —
-relative to that fixture's `teamA`/`teamB` (A = teamA won, B = teamB won):
+Score a game **only if it is explicitly final** — a full-time marker ("Full
+time", "FT", "final score", "match ended") from a reputable source; for knockouts,
+final means after extra time and penalties (the team that advances wins). Report
+relative to the fixture's `teamA`/`teamB` (A = teamA won, B = teamB won):
 
 ```
 npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> result final score"
 npx tsx /workspace/home/tools/guess.ts result <matchId> <A|B|draw>
 ```
 
-Skip any pending game that has not finished yet — never report an unconfirmed
-result; it will be picked up by a later run. `pending` returning `[]` means
-there is nothing to score.
+**Skip — do not score — any game that is not finished:** not kicked off, LIVE, a
+running clock or minute mark, half-time, in progress, a knockout still heading to
+ET/penalties, or just a scoreline with no full-time confirmation. `result` locks
+permanently and cannot be corrected, so **when in doubt, skip** — a later score
+run will catch it. `pending` returning `[]` means there is nothing to score.
 
-### Step 4: The next game day
+### Step 4: The next two game days
 
 ```
-npx tsx /workspace/home/tools/fixtures.ts next
+npx tsx /workspace/home/tools/fixtures.ts upcoming 2
 ```
 
-This returns the games on the soonest game day — today if there are games today,
-otherwise the next day that has games. Always predict these; never skip a game
-day just because the games are not today.
+This returns every game on the next **two** game days — today if there are games
+today, plus the following game day. Predicting a two-day window (instead of only
+the soonest day) gives every game several predict runs before its date passes, so
+a single failed or missed run never silently drops a game. Always predict all of
+these; never skip a game just because it is not today. Picks lock on first write,
+so games already predicted on an earlier run are simply skipped — you never
+double-predict.
+
+> **Do NOT use `fixtures.ts next`** (it returns only the single soonest game day)
+> or any one-day logic to decide what to predict. Always use `fixtures.ts
+> upcoming 2`. The two-day buffer is the whole point: it is what lets a game
+> still get predicted if an earlier run fails or is skipped. Predicting only the
+> soonest day re-opens that gap.
 
 ### Step 5: Research
 
-Read the **news** for each of the next game day's matchups — match previews, team
+Read the **news** for each of these matchups — match previews, team
 news, injuries, suspensions, form, line-ups, and tactical analysis:
 
 ```
@@ -193,7 +220,7 @@ the markets say. Do as much or as little news research as you want.
 
 ### Step 6: Predict
 
-Record one prediction per game on the next game day:
+Record one prediction per game across the next two game days:
 
 ```
 npx tsx /workspace/home/tools/guess.ts predict <matchId> <A|B|draw> <short reason>
