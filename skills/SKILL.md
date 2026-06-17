@@ -31,8 +31,8 @@ else**:
   finished, as soon as the result is confirmed. No podium, no new predictions.
   Fast and quiet.
 - **`predict`** — runs twice a day in the morning, before kickoffs. The full
-  routine: podium (once), score finished games, predict the next two game days,
-  diary, memory.
+  routine: podium (once), score finished games, predict the next 4 unpredicted
+  matches, diary, memory.
 
 Picks **lock on first write** — once you predict a game it cannot be changed or
 overwritten, so repeated runs are always safe.
@@ -183,30 +183,31 @@ ET/penalties, or just a scoreline with no full-time confirmation. `result` locks
 permanently and cannot be corrected, so **when in doubt, skip** — a later score
 run will catch it. `pending` returning `[]` means there is nothing to score.
 
-### Step 4: The next two game days
+### Step 4: The next batch to predict
 
 ```
-npx tsx /workspace/home/tools/fixtures.ts upcoming 2
+npx tsx /workspace/home/tools/guess.ts queue 4
 ```
 
-This returns every game on the next **two** game days — today if there are games
-today, plus the following game day. Predicting a two-day window (instead of only
-the soonest day) gives every game several predict runs before its date passes, so
-a single failed or missed run never silently drops a game. Always predict all of
-these; never skip a game just because it is not today. Picks lock on first write,
-so games already predicted on an earlier run are simply skipped — you never
-double-predict.
+This returns the **next 4 upcoming matches that you have not yet predicted**, in
+date order. Every match in the output is one you owe a pick on — there is no
+"is this still relevant?" filter to apply yourself, and no "today's games are
+already done" exit. Predict every match in the list.
 
-> **Do NOT use `fixtures.ts next`** (it returns only the single soonest game day)
-> or any one-day logic to decide what to predict. Always use `fixtures.ts
-> upcoming 2`. The two-day buffer is the whole point: it is what lets a game
-> still get predicted if an earlier run fails or is skipped. Predicting only the
-> soonest day re-opens that gap.
+If `queue` returns `[]`, there is nothing to predict — stop here.
+
+> **Do NOT use `fixtures.ts next` or `fixtures.ts upcoming`** or any other
+> date-window reasoning ("today's games are all locked, so I'm done") to decide
+> what to predict. Those list games by date without filtering already-locked
+> picks, which has historically caused agents to look at a list of locked games
+> and declare themselves done — silently missing the next game day. `guess.ts
+> queue 4` exists specifically to make that failure impossible: every match it
+> returns is unpredicted and needs a pick.
 
 ### Step 5: Research
 
-Read the **news** for each of these matchups — match previews, team
-news, injuries, suspensions, form, line-ups, and tactical analysis:
+Read the **news** for each match in the queue — match previews, team news,
+injuries, suspensions, form, line-ups, and tactical analysis:
 
 ```
 npx tsx /workspace/home/tools/search.ts "<teamA> vs <teamB> World Cup preview form injuries"
@@ -220,18 +221,17 @@ the markets say. Do as much or as little news research as you want.
 
 ### Step 6: Predict
 
-Record one prediction per game across the next two game days:
+Record one prediction per match in the queue:
 
 ```
 npx tsx /workspace/home/tools/guess.ts predict <matchId> <A|B|draw> <short reason>
 ```
 
-You must predict **before** the game is played. Picks **lock on first write**: a
-game you have already predicted is rejected (`already predicted; picks are
-locked`) — that is expected on the second predict run of the day, so just skip
-it. The tool also rejects predictions for games whose date has already passed.
-Check each result for errors before moving on; if one errors, note it in your
-diary and continue.
+You must predict **before** the game is played. Picks **lock on first write** —
+since `queue` already filters out locked picks, every match you predict here is
+fresh. The tool still rejects predictions for games whose date has already
+passed. Check each result for errors before moving on; if one errors, note it in
+your diary and continue.
 
 ### Step 7: Write your diary
 

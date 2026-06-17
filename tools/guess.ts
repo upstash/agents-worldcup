@@ -109,6 +109,17 @@ function pending() {
   return out;
 }
 
+// ── queue (next N upcoming matches not yet predicted) ──
+
+function queue(n: number) {
+  const guesses = readGuesses();
+  const t = today();
+  return readFixtures()
+    .filter((m) => m.date >= t && !guesses[m.id])
+    .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
+    .slice(0, Math.max(1, n));
+}
+
 // ── result (self-reported, then scored) ──
 
 function result(id: string, actual: string) {
@@ -154,6 +165,13 @@ if (cmd === "pending") {
   process.exit(0);
 }
 
+// Read-only listing of next N upcoming matches with no pick yet — used by `predict`.
+if (cmd === "queue") {
+  const n = Number.parseInt(args[1] ?? "4", 10) || 4;
+  console.log(JSON.stringify(queue(n), null, 2));
+  process.exit(0);
+}
+
 let res: { success: boolean; error?: string };
 
 if (cmd === "rank") {
@@ -173,7 +191,7 @@ if (cmd === "rank") {
     ? result(id, actual)
     : { success: false, error: "usage: guess.ts result <matchId> <A|B|draw>" };
 } else {
-  res = { success: false, error: "usage: guess.ts <rank|predict|result|pending> ..." };
+  res = { success: false, error: "usage: guess.ts <rank|predict|result|pending|queue> ..." };
 }
 
 console.log(JSON.stringify(res, null, 2));
